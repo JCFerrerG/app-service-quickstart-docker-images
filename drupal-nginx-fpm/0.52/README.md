@@ -124,8 +124,24 @@ php-fpm -D && chmod 777 /run/php/php7.0-fpm.sock
 2. Update App Setting ```LISTEN_TYPE``` = port if you perfer to listening from TCP/IP.
 
 ## How to update config files of nginx
-1. Go to "/etc/nginx", update config files as your wish. 
-2. Reload by below cmd: 
+Generally, there are two places to put nginx configs:
+* /etc/nginx/ - default configuration, with /etc/nginx/nginx.conf as the base.
+* /etc/nginx/conf.d/ - supplemental configuration files (in addition to the base config).
+
+Here are some ways to override or supplement config files:
+
+* Mount a custom config files as a volume. E.g., 
+
+    `docker run -v $(pwd)/my-default-nginx.conf:/etc/nginx/nginx.conf drupal-nginx-fpm:latest`
+
+* Create a custom image, and copy your updated config files into the appropriate location. E.g.,
+    ```Dockerfile
+    # Example Dockerfile for a custom image
+    FROM drupal-nginx-fpm:latest
+    COPY ./my-supplemental-nginx.conf /etc/nginx/conf.d/
+    ```
+
+To reload nginx settings without restarting the container, run this command in the container:
 ```
 /usr/sbin/nginx -s reload
 ```
@@ -174,6 +190,8 @@ composer require drupal/adminimal_theme
 - Deploy to Azure, Pull and run this image need some time, You can include App Setting ```WEBSITES_CONTAINER_START_TIME_LIMIT``` to specify the time in seconds as need, Default is 240 and max is 1800, suggest to set it as 900 when using this version.
 
 ## Change Log
+- **Version 0.52**
+  1. Fix #265 - made it easier to override nginx config files.
 - **Version 0.51**
   1. Added [fluent-plugin-azure-loganalytics](https://github.com/yokawasa/fluent-plugin-azure-loganalytics) for centralized logging via OMS (instead of [OMS Agent for Linux](https://github.com/Microsoft/OMS-Agent-for-Linux) which is [not compatible with Alpine Linux's apk](https://github.com/Microsoft/OMS-Agent-for-Linux#supported-linux-operating-systems)).
   2. Added MIME type declarations for common webfonts in nginx.conf.
